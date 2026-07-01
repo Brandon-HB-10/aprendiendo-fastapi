@@ -2,6 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import engine, get_db
 import models, schemas
+from ia import preguntar_a_claude
+from pydantic import BaseModel
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -50,3 +52,12 @@ def eliminar_tarea(tarea_id: int, db: Session = Depends(get_db)):
     db.delete(tarea)
     db.commit()
     return {"mensaje": "Tarea eliminada"}
+
+
+class Pregunta(BaseModel):
+    mensaje: str
+
+@app.post("/chat")
+def chat(pregunta: Pregunta):
+    respuesta = preguntar_a_claude(pregunta.mensaje)
+    return {"respuesta": respuesta}
